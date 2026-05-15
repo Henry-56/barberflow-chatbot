@@ -1,0 +1,13 @@
+{
+  "name": "barberflow-chatbot",
+  "version": "1.0.0",
+  "description": "Chatbot WhatsApp para leads de BarberFlow",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
+  }
+}

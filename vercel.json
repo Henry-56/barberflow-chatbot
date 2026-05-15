@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/webhook.js": { "maxDuration": 30 },
+    "api/citas.js":   { "maxDuration": 10 }
+  }
+}
