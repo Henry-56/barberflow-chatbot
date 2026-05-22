@@ -1,5 +1,5 @@
 import { procesarMensaje, procesarSlotElegido } from '../lib/chatbot.js';
-import { initDB } from '../lib/db.js';
+import { initDB, saveMessage } from '../lib/db.js';
 
 const VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
 
@@ -32,14 +32,15 @@ export default async function handler(req, res) {
 
             // Mensaje de texto normal
             if (msg.type === 'text') {
-              console.log(`[TEXT] ${phone}: ${msg.text.body}`);
+              await saveMessage(phone, 'in', msg.text.body, 'text');
               await procesarMensaje(phone, msg.text.body, nombre);
             }
 
             // Respuesta interactiva — el lead tocó un horario de la lista
             if (msg.type === 'interactive' && msg.interactive?.type === 'list_reply') {
               const slotId = msg.interactive.list_reply.id;
-              console.log(`[LIST_REPLY] ${phone}: ${slotId}`);
+              const label  = msg.interactive.list_reply.title || slotId;
+              await saveMessage(phone, 'in', `✅ Horario elegido: ${label}`, 'interactive');
               await procesarSlotElegido(phone, slotId, nombre);
             }
           }
