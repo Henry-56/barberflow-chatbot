@@ -59,9 +59,12 @@ export default async function handler(req, res) {
 async function checkIfProspect(phone, messageText, nombre) {
   const normalizedPhone = normalizePhone(phone);
   const prospect = await getProspectByPhone(normalizedPhone);
+  // Si el número existe en prospects con CUALQUIER status → nunca activar el bot de campaña
   if (!prospect) return false;
+
+  // Solo notificar la primera vez que responden (cuando estaban en cola de envío)
   const activeStatuses = ['sent_msg1', 'sent_msg2', 'sent_msg3'];
-  if (!activeStatuses.includes(prospect.status)) return false;
+  if (!activeStatuses.includes(prospect.status)) return true; // silenciar bot, no notificar
 
   await updateProspectStatus(normalizedPhone, 'replied', { replied_at: new Date() });
 
