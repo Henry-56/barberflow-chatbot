@@ -255,6 +255,7 @@ function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 function avatarEmoji(e){return {inicio:'👤',esperando_dolor:'💬',esperando_decision:'🤔',eligiendo_horario:'📅',agendado:'✅'}[e]||'👤';}
 const DIAS_ES=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 const MESES_ES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function fmtDateHour(iso){if(!iso)return '';const d=new Date(iso);const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());const yest=new Date(+today-86400000);const msgDay=new Date(d.getFullYear(),d.getMonth(),d.getDate());const h=d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});if(+msgDay===+today)return 'Hoy, '+h;if(+msgDay===+yest)return 'Ayer, '+h;return d.getDate()+' '+MESES_ES[d.getMonth()]+', '+h;}
 function fmtDaySep(iso){const d=new Date(iso);const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());const yest=new Date(+today-86400000);const msgDay=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(+msgDay===+today)return 'Hoy';if(+msgDay===+yest)return 'Ayer';return d.getDate()+' de '+MESES_ES[d.getMonth()];}
 function fmtSlotDate(slotId){if(!slotId)return '';const m=slotId.match(/^slot_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})$/);if(!m)return '';const[,y,mo,d,hh,mm]=m;const date=new Date(Date.UTC(+y,+mo-1,+d));const dia=DIAS_ES[date.getUTCDay()];const diaC=dia[0].toUpperCase()+dia.slice(1);const h=+hh;const min=+mm;const minS=min>0?':'+String(min).padStart(2,'0'):'';const hl=h<12?h+minS+' am':h===12?'12'+minS+' m':(h-12)+minS+' pm';return diaC+' '+parseInt(d)+' de '+MESES_ES[+mo-1]+' — '+hl;}
 
@@ -478,9 +479,10 @@ async function loadProspectMessages(p){
     } else {
       content=m.content||'';
     }
+    const tick=m.direction==='out'?' ✓✓':'';
     return sep+\`<div class="bubble-wrap \${m.direction}">
       <div class="bubble \${m.direction}">\${escHtml(content)}</div>
-      <div class="btime">\${fmtHour(m.created_at)}</div>
+      <div class="btime" style="color:#777">\${fmtDateHour(m.created_at)}\${tick}</div>
     </div>\`;
   }).join('');
   container.scrollTop=container.scrollHeight;
