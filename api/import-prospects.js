@@ -1,4 +1,4 @@
-import { importProspects } from '../lib/db.js';
+import { initDB, importProspects } from '../lib/db.js';
 
 const ADMIN_KEY = process.env.ADMIN_KEY;
 
@@ -8,6 +8,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  await initDB();
   try {
     const { rows } = req.body;
     if (!Array.isArray(rows) || rows.length === 0) {

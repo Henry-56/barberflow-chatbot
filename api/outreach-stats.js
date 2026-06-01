@@ -1,4 +1,4 @@
-import { getOutreachStats, getAllProspects, countSentToday } from '../lib/db.js';
+import { initDB, getOutreachStats, getAllProspects, countSentToday } from '../lib/db.js';
 
 const ADMIN_KEY = process.env.ADMIN_KEY;
 const DAILY_LIMIT = 20;
@@ -9,9 +9,11 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  await initDB();
+
   const [stats, prospects, sentToday] = await Promise.all([
     getOutreachStats(),
-    getAllProspects(100, 0),
+    getAllProspects(),
     countSentToday()
   ]);
 
