@@ -123,6 +123,13 @@ body{background:#0A0A0A;color:#F5F5F0;font-family:-apple-system,BlinkMacSystemFo
 #vista-prospect-chat{display:none;flex-direction:column;height:100dvh}
 .pc-status{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-block;margin-top:3px}
 
+/* ── TAB BAR ── */
+#tab-bar{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid #222;display:flex;height:56px;z-index:200}
+.tab-btn{flex:1;border:none;background:none;color:#555;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:inherit;transition:color .15s}
+.tab-btn.active{color:#D4AF37}
+.tab-icon{font-size:20px;line-height:1}
+#vista-lista,#vista-outreach{padding-bottom:56px}
+
 /* ── OUTREACH ── */
 #vista-outreach{display:none;flex-direction:column;height:100dvh;overflow-y:auto}
 .ptable tbody tr{cursor:pointer;transition:background .15s}
@@ -157,28 +164,24 @@ textarea.csv-ta:focus{border-color:#D4AF37}
 </head>
 <body>
 
-<!-- LISTA -->
+<!-- CAMPAÑA -->
 <div id="vista-lista">
-  <div class="header" style="display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <div class="header-logo">⚡ BarberFlow</div>
-      <div class="header-sub">Conversaciones en vivo</div>
-    </div>
-    <button class="nav-btn" onclick="showOutreach()">📊 Outreach</button>
+  <div class="header">
+    <div class="header-logo">📱 Campaña</div>
+    <div class="header-sub">Leads de Meta Ads</div>
   </div>
   <div class="stats" id="stats-bar"></div>
   <div id="leads-list"><div class="loading">Cargando...</div></div>
 </div>
 
-<!-- OUTREACH -->
+<!-- PROSPECTOS -->
 <div id="vista-outreach">
   <div class="out-header">
-    <span class="back-btn" onclick="volverDesdeOutreach()">‹</span>
     <div style="flex:1">
-      <div class="header-logo">📊 Outreach</div>
+      <div class="header-logo">📊 Prospectos</div>
       <div class="header-sub" id="out-header-sub">Cargando...</div>
     </div>
-    <button class="out-btn" style="padding:6px 12px;font-size:12px" onclick="loadOutreach()">↺ Refrescar</button>
+    <button class="out-btn" style="padding:6px 12px;font-size:12px" onclick="loadOutreach()">↺</button>
   </div>
   <div class="stats-grid" id="out-stats"></div>
   <div class="out-section">
@@ -232,11 +235,41 @@ textarea.csv-ta:focus{border-color:#D4AF37}
   </div>
 </div>
 
+<!-- TAB BAR -->
+<div id="tab-bar">
+  <button class="tab-btn active" id="tab-campaign" onclick="switchTab('campaign')">
+    <span class="tab-icon">📱</span><span>Campaña</span>
+  </button>
+  <button class="tab-btn" id="tab-prospects" onclick="switchTab('prospects')">
+    <span class="tab-icon">📊</span><span>Prospectos</span>
+  </button>
+</div>
+
 <script>
 const KEY = ${JSON.stringify(key)};
 const ESTADOS = ${JSON.stringify(ESTADO_LABELS)};
 let currentLead = null;
 let currentProspect = null;
+let activeTab = 'campaign';
+
+function switchTab(tab){
+  activeTab=tab;
+  document.getElementById('tab-campaign').className='tab-btn'+(tab==='campaign'?' active':'');
+  document.getElementById('tab-prospects').className='tab-btn'+(tab==='prospects'?' active':'');
+  if(tab==='campaign'){
+    document.getElementById('vista-lista').style.display='flex';
+    document.getElementById('vista-outreach').style.display='none';
+    loadLeads();
+  } else {
+    document.getElementById('vista-lista').style.display='none';
+    const v=document.getElementById('vista-outreach');
+    v.style.display='flex';v.style.flexDirection='column';
+    loadOutreach();
+  }
+  document.getElementById('tab-bar').style.display='flex';
+}
+function showTabBar(){document.getElementById('tab-bar').style.display='flex';}
+function hideTabBar(){document.getElementById('tab-bar').style.display='none';}
 
 const TMPL = {
   'barberflow_outreach_m1b': (n,c) => \`Hola \${n} 👋\\n\\nLes ofrezco 21 días gratis de BarberFlow para su barbería en \${c}.\\n\\nEs un sistema que fideliza clientes automáticamente por WhatsApp — los que no vuelven reciben un mensaje y regresan.\\n\\n¿Les interesa que les muestre cómo funciona? Son solo 15 minutos.\`,
@@ -297,6 +330,7 @@ async function openChat(lead){
   lastMsgId=0;
   lastRenderedDate=null;
   document.getElementById('vista-lista').style.display='none';
+  hideTabBar();
   const chatEl=document.getElementById('vista-chat');
   chatEl.style.display='flex';
   const est=ESTADOS[lead.estado]||{label:lead.estado,color:'#888'};
@@ -372,6 +406,7 @@ function volverLista(){
   currentLead=null;
   document.getElementById('vista-chat').style.display='none';
   document.getElementById('vista-lista').style.display='flex';
+  showTabBar();
   loadLeads();
 }
 
@@ -434,6 +469,7 @@ function openProspectChatById(id){
 function openProspectChat(p){
   currentProspect=p;
   document.getElementById('vista-outreach').style.display='none';
+  hideTabBar();
   const v=document.getElementById('vista-prospect-chat');
   v.style.display='flex';
   document.getElementById('pc-name').textContent=p.name;
@@ -493,20 +529,10 @@ function volverDesdeProspectChat(){
   const v=document.getElementById('vista-outreach');
   v.style.display='flex';
   v.style.flexDirection='column';
+  showTabBar();
 }
 
 /* ── OUTREACH ── */
-function showOutreach(){
-  document.getElementById('vista-lista').style.display='none';
-  const v=document.getElementById('vista-outreach');
-  v.style.display='flex';
-  v.style.flexDirection='column';
-  loadOutreach();
-}
-function volverDesdeOutreach(){
-  document.getElementById('vista-outreach').style.display='none';
-  document.getElementById('vista-lista').style.display='flex';
-}
 async function loadOutreach(){
   const r=await fetch('/api/outreach-stats?key='+encodeURIComponent(KEY));
   if(!r.ok)return;
@@ -557,9 +583,9 @@ async function importarCSV(){
 }
 
 /* ── INIT ── */
-loadLeads();
+switchTab('campaign');
 setInterval(()=>{
-  if(document.getElementById('vista-lista').style.display!=='none') loadLeads();
+  if(activeTab==='campaign'&&document.getElementById('vista-lista').style.display!=='none') loadLeads();
 },30000);
 </script>
 </body></html>`;
