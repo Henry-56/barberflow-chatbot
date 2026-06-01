@@ -1,6 +1,13 @@
 {
   "functions": {
-    "api/webhook.js": { "maxDuration": 30 },
-    "api/citas.js":   { "maxDuration": 10 }
-  }
+    "api/webhook.js":       { "maxDuration": 30 },
+    "api/citas.js":         { "maxDuration": 10 },
+    "api/cron-outreach.js": { "maxDuration": 90 }
+  },
+  "crons": [
+    {
+      "path": "/api/cron-outreach",
+      "schedule": "0 15 * * 1-6"
+    }
+  ]
 }

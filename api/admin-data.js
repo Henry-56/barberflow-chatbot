@@ -1,4 +1,4 @@
-import { initDB, getLeads, getMessages } from '../lib/db.js';
+import { initDB, getLeads, getMessages, getProspectThread } from '../lib/db.js';
 
 const ADMIN_KEY = process.env.ADMIN_KEY;
 
@@ -11,7 +11,12 @@ export default async function handler(req, res) {
 
   await initDB();
 
-  const { phone } = req.query;
+  const { phone, prospect_id, prospect_phone } = req.query;
+
+  if (prospect_id) {
+    const data = await getProspectThread(prospect_id, prospect_phone || '');
+    return res.status(200).json(data);
+  }
 
   if (phone) {
     const messages = await getMessages(phone);
