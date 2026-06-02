@@ -1,6 +1,6 @@
 import { procesarMensaje, procesarSlotElegido } from '../lib/chatbot.js';
 import { initDB, saveMessage, getProspectByPhone, updateProspectStatus, normalizePhone } from '../lib/db.js';
-import { sendMessage, sendFollowUp } from '../lib/whatsapp.js';
+import { sendMessage } from '../lib/whatsapp.js';
 
 const VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
 
@@ -59,13 +59,20 @@ export default async function handler(req, res) {
 async function checkIfProspect(phone, messageText, nombre) {
   const normalizedPhone = normalizePhone(phone);
   const prospect = await getProspectByPhone(normalizedPhone);
-  // Si el número existe en prospects con CUALQUIER status → nunca activar el bot de campaña
   if (!prospect) return false;
 
-  // Solo notificar la primera vez que responden (cuando estaban en cola de envío)
   const activeStatuses = ['sent_msg1', 'sent_msg2', 'sent_msg3'];
-  if (!activeStatuses.includes(prospect.status)) return true; // silenciar bot, no notificar
 
+  // Prospecto que ya respondió antes → agente IA continúa la conversación
+  if (!activeStatuses.includes(prospect.status)) {
+    if (prospect.status === 'replied') {
+      await procesarMensaje(phone, messageText, nombre || prospect.name);
+    }
+    // not_interested / invalid / converted → silenciar
+    return true;
+  }
+
+  // Primera respuesta → marcar replied + notificar + agente IA responde
   await updateProspectStatus(normalizedPhone, 'replied', { replied_at: new Date() });
 
   const teamPhone = process.env.TEAM_PHONE;
@@ -80,6 +87,6 @@ async function checkIfProspect(phone, messageText, nombre) {
     );
   }
 
-  await sendFollowUp(normalizedPhone, prospect.name);
+  await procesarMensaje(phone, messageText, nombre || prospect.name);
   return true;
 }
