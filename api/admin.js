@@ -495,7 +495,7 @@ async function loadProspectMessages(p){
 
   const all=[
     ...sent.map(m=>({...m,direction:'out'})),
-    ...replies.map(m=>({...m,direction:'in'})),
+    ...replies,
   ].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
 
   const container=document.getElementById('pc-messages');
